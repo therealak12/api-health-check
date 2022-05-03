@@ -1,18 +1,17 @@
 package repository
 
 import (
-	"fmt"
-
+	"errors"
 	"gorm.io/gorm"
 )
 
 type Healthcheck struct {
-	ID              int      `json:"id"`
-	IntervalSeconds int      `json:"IntervalSeconds"`
-	Url             string   `json:"url"`
-	HttpMethod      string   `json:"httpMethod"`
-	Headers         []string `json:"headers"`
-	Body            string   `json:"body"`
+	ID              int    `json:"id"`
+	IntervalSeconds int    `json:"intervalSeconds"`
+	Url             string `json:"url"`
+	HttpMethod      string `json:"httpMethod"`
+	HeadersJson     string `json:"headers"`
+	Body            string `json:"body"`
 }
 
 type HealthcheckRepo interface {
@@ -31,12 +30,12 @@ type SQLHealthcheckRepo struct {
 func (c SQLHealthcheckRepo) FindOne(id int) (Healthcheck, error) {
 	healthcheck := Healthcheck{}
 	query := c.DB.Where("id = ?", id).Find(&healthcheck)
+
+	if errors.Is(query.Error, gorm.ErrRecordNotFound) || query.RowsAffected == 0 {
+		return healthcheck, ErrRecordNotFound
+	}
 	if query.Error != nil {
 		return healthcheck, query.Error
-	}
-
-	if query.RowsAffected == 0 {
-		return healthcheck, fmt.Errorf("sql healthcheck find one: %w", ErrRecordNotFound)
 	}
 
 	return healthcheck, nil
@@ -44,12 +43,12 @@ func (c SQLHealthcheckRepo) FindOne(id int) (Healthcheck, error) {
 
 func (c SQLHealthcheckRepo) Delete(id int) error {
 	query := c.DB.Where("id = ?", id).Delete(&Healthcheck{})
+
+	if errors.Is(query.Error, gorm.ErrRecordNotFound) || query.RowsAffected == 0 {
+		return ErrRecordNotFound
+	}
 	if query.Error != nil {
 		return query.Error
-	}
-
-	if query.RowsAffected == 0 {
-		return fmt.Errorf("sql healthcheck delete: %w", ErrRecordNotFound)
 	}
 
 	return nil

@@ -1,12 +1,13 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
-
 	"github.com/therealak12/api-health-check/repository"
 	"github.com/therealak12/api-health-check/request"
+	"github.com/therealak12/api-health-check/service"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
@@ -14,7 +15,16 @@ import (
 
 // HealthcheckHandler handles operations defined for healthcheck.
 type HealthcheckHandler struct {
-	HealthcheckRepo repository.HealthcheckRepo
+	HealthcheckRepo    repository.HealthcheckRepo
+	HealthcheckService service.HealthcheckService
+}
+
+func NewHealthcheckHandler(healthcheckRepo repository.HealthcheckRepo,
+	healthcheckService service.HealthcheckService) HealthcheckHandler {
+	return HealthcheckHandler{
+		HealthcheckRepo:    healthcheckRepo,
+		HealthcheckService: healthcheckService,
+	}
 }
 
 func (h HealthcheckHandler) Register(c echo.Context) error {
@@ -29,11 +39,16 @@ func (h HealthcheckHandler) Register(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("bad request: %s", err.Error()))
 	}
 
+	headersJson, err := json.Marshal(req.Headers)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("bad request: %s", err.Error()))
+	}
+
 	healthcheck := &repository.Healthcheck{
 		IntervalSeconds: req.IntervalSeconds,
 		Url:             req.Url,
 		HttpMethod:      req.HttpMethod,
-		Headers:         req.Headers,
+		HeadersJson:     string(headersJson),
 		Body:            req.Body,
 	}
 
@@ -54,17 +69,11 @@ func (h HealthcheckHandler) Start(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("bind request failed: %s", err))
 	}
 
-	healthcheck, err := h.HealthcheckRepo.FindOne(req.ID)
-	if err == repository.ErrRecordNotFound {
-		return echo.NewHTTPError(http.StatusNotFound)
-	}
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to get healthchecks")
+	if err := h.HealthcheckService.StartHealthCheck(req.ID); err != nil {
+		return err
 	}
 
-	//TODO: START
-
-	return c.JSON(http.StatusOK, healthcheck)
+	return c.JSON(http.StatusOK, "")
 }
 
 func (h HealthcheckHandler) Stop(c echo.Context) error {
@@ -75,17 +84,11 @@ func (h HealthcheckHandler) Stop(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("bind request failed: %s", err))
 	}
 
-	healthcheck, err := h.HealthcheckRepo.FindOne(req.ID)
-	if err == repository.ErrRecordNotFound {
-		return echo.NewHTTPError(http.StatusNotFound)
-	}
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to get healthchecks")
+	if err := h.HealthcheckService.StoptHealthCheck(req.ID); err != nil {
+		return err
 	}
 
-	//TODO: STOP
-
-	return c.JSON(http.StatusOK, healthcheck)
+	return c.JSON(http.StatusOK, "")
 }
 
 func (h HealthcheckHandler) List(c echo.Context) error {

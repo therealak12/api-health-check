@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/therealak12/api-health-check/handler"
 	"github.com/therealak12/api-health-check/repository"
+	"github.com/therealak12/api-health-check/service"
 	"os"
 	"os/signal"
 	"syscall"
@@ -26,6 +27,7 @@ func main() {
 	server.Use(middleware.Recover())
 	server.Use(middleware.CORS())
 	server.Use(middleware.RemoveTrailingSlash())
+	server.Use(middleware.Logger())
 
 	cfg := config.New()
 	logrus.SetOutput(os.Stdout)
@@ -35,17 +37,16 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("failed to connect to database: %s", err.Error())
 	}
-	healthCheckRepo := repository.SQLHealthcheckRepo{
-		DB: db,
-	}
+	healthcheckRepo := repository.SQLHealthcheckRepo{DB: db}
+	healthcheckEventRepo := repository.SQLHealthcheckEventRepo{DB: db}
+	healthcheckService := service.NewHealthcheckService(healthcheckRepo, healthcheckEventRepo, cfg.Webhook)
+	healthcheckHandler := handler.NewHealthcheckHandler(healthcheckRepo, healthcheckService)
 
-	healthCheckHandler := handler.HealthcheckHandler{HealthcheckRepo: healthCheckRepo}
-
-	server.GET("/healthchecks", healthCheckHandler.List)
-	server.POST("/healthchecks", healthCheckHandler.Register)
-	server.GET("/healthchecks/:id/start", healthCheckHandler.Start)
-	server.GET("/healthchecks/:id/stop", healthCheckHandler.Stop)
-	server.DELETE("/healthchecks/:id", healthCheckHandler.Delete)
+	server.GET("/healthchecks", healthcheckHandler.List)
+	server.POST("/healthchecks", healthcheckHandler.Register)
+	server.GET("/healthchecks/:id/start", healthcheckHandler.Start)
+	server.GET("/healthchecks/:id/stop", healthcheckHandler.Stop)
+	server.DELETE("/healthchecks/:id", healthcheckHandler.Delete)
 
 	go func() {
 		err := server.Start(":8080")

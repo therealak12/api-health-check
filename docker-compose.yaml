@@ -5,12 +5,8 @@ services:
     image: 'postgres:13'
     environment:
       POSTGRES_USER: healthcheck
-      POSTGRES_PASSWORD: securepass
+      POSTGRES_PASSWORD: healthcheck
+      POSTGRES_DB: healthcheck
       PGDATA: /data/postgres
-    volumes:
-      - postgres:/data/postgres
     ports:
       - "5432:5432"
-
-volumes:
-  postgres:

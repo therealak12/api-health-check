@@ -14,6 +14,7 @@ type (
 	Config struct {
 		Logger   Logger   `koanf:"logger"`
 		Database Database `koanf:"database"`
+		Webhook  Webhook  `koanf:"webhook"`
 	}
 
 	Logger struct {
@@ -29,6 +30,12 @@ type (
 		Password string        `koanf:"password"`
 		Timeout  time.Duration `koanf:"timeout"`
 	}
+
+	Webhook struct {
+		Url              string        `koanf:"url"`
+		MessageFieldName string        `koanf:"messageFieldName"`
+		Timeout          time.Duration `koanf:"timeout"`
+	}
 )
 
 var defaultConfig = Config{
@@ -41,8 +48,13 @@ var defaultConfig = Config{
 		Port:     "5432",
 		Name:     "healthcheck",
 		Username: "healthcheck",
-		Password: "securepass",
+		Password: "healthcheck",
 		Timeout:  5 * time.Second,
+	},
+	Webhook: Webhook{
+		Url:              "http://localhost:5050",
+		MessageFieldName: "message",
+		Timeout:          5,
 	},
 }
 
@@ -62,8 +74,6 @@ func New() Config {
 	if err := k.Unmarshal("", &instance); err != nil {
 		logrus.Fatalf("error unmarshalling config: %s", err)
 	}
-
-	logrus.Infof("following configuration is loaded:\n%+v", instance)
 
 	return instance
 }

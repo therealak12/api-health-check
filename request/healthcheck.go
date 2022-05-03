@@ -1,12 +1,11 @@
 package request
 
 type CreateHealthcheck struct {
-	ID              int      `json:"id"`
-	IntervalSeconds int      `json:"IntervalSeconds"`
-	Url             string   `json:"url"`
-	HttpMethod      string   `json:"httpMethod"`
-	Headers         []string `json:"headers"`
-	Body            string   `json:"body"`
+	IntervalSeconds int               `json:"IntervalSeconds"`
+	Url             string            `json:"url"`
+	HttpMethod      string            `json:"httpMethod"`
+	Headers         map[string]string `json:"headers"`
+	Body            string            `json:"body"`
 }
 
 type DeleteHealthcheck struct {
