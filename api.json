@@ -1,0 +1,73 @@
+{
+  "info": {
+    "_postman_id": "82ebc752-f5e2-4b1a-91e9-402be3b89acf",
+    "name": "api health check",
+    "schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "http://localhost:8080/healthchecks",
+      "id": "d7ddcb5f-d1d7-4916-a613-28bff1c80738",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"IntervalSeconds\": 5,\n    \"url\": \"http://localhost:5060\",\n    \"httpMethod\": \"GET\",\n    \"headers\": {},\n    \"body\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "http://localhost:8080/healthchecks",
+        "description": "Create a new healthcheck"
+      },
+      "response": []
+    },
+    {
+      "name": "http://localhost:8080/healthchecks/1/start",
+      "id": "4cc44216-20a2-437a-b59a-5ce001f062d9",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8080/healthchecks/1/start",
+        "description": "Start a healthcheck"
+      },
+      "response": []
+    },
+    {
+      "name": "http://localhost:8080/healthchecks/1/stop",
+      "id": "4bf8de22-58e9-4a43-98e9-f81e35d79ec0",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8080/healthchecks/1/stop",
+        "description": "Stop a healthcheck"
+      },
+      "response": []
+    },
+    {
+      "name": "http://localhost:8080/healthchecks/1",
+      "id": "eb6b0c50-462d-4c46-bd21-6b1d9f4c02cd",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "http://localhost:8080/healthchecks/1",
+        "description": "Delete a healthcheck"
+      },
+      "response": []
+    },
+    {
+      "name": "http://localhost:8080/healthchecks",
+      "id": "662e852c-fd27-4916-9813-5c5366c3bb74",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8080/healthchecks",
+        "description": "List all healthchecks"
+      },
+      "response": []
+    }
+  ]
+}
